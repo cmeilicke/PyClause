@@ -346,6 +346,20 @@ class RuleB(Rule):
             self.rels = tuple(map(lambda x : self.ruleset.index.to2id[x], rels))
             self.dirs = tuple(dirs)
 
+
+    def as_problog_rule(self):
+        id2to = self.ruleset.index.id2to
+        rep = "r" + str(self.target) + "(X,Y) :- "
+        my_vars = Rule.var_symbols[len(self.rels) - 1]
+        for i in range(len(self.rels)):
+            (v1, v2) = (my_vars[i], my_vars[i+1]) if self.dirs[i] else (my_vars[i+1], my_vars[i])
+            rep += " r" + str(self.rels[i]) + "(" + v1 + "," + v2 + ")"
+            if i < len(self.rels)-1: rep += ","
+        return rep
+
+        return self.get_rep(self.ruleset.index.id2to)
+
+
     def __str__(self):
         return self.get_rep(self.ruleset.index.id2to)
     
@@ -590,6 +604,16 @@ class RuleSet:
                 confidence = '{:.5f}'.format(rule.cpred / rule.pred)
                 f.write(str(rule.pred) + "\t" + str(rule.cpred) + "\t" + str(confidence) + "\t" + str(rule) + "\n")
             print(">>> " + str(len(self.rules)) + " rules written to " +  path + " using PyClause format") 
+            f.close()
+            return
+    
+        if output_format == "Problog":
+            print("*** this output method is incomplete and only used for experimental stuff *** ")
+            for rule in self.rules:
+                if isinstance(rule, RuleB) and len(rule.rels) < 4:
+                    confidence = '{:.5f}'.format(rule.cpred / rule.pred)
+                    f.write(str(confidence) + "::" + rule.as_problog_rule() + ".\n")
+            print(">>> " + str(len(self.rules)) + " rules written to " +  path + " using Problog format") 
             f.close()
             return
         

@@ -28,6 +28,12 @@ class Triple:
          self.index.id2to[id_] = to
          self.index.my_id += 1
          return id_
+      
+   def as_problog_fact(self):
+      r = "r" + str(self.rel) 
+      s = "e" + str(self.sub)
+      o = "e" + str(self.obj)
+      return r + "(" + s + ", " + o + ")." 
 
    def __str__(self):
       return f"{self.index.id2to[self.sub]} {self.index.id2to[self.rel]} {self.index.id2to[self.obj]}"
@@ -208,32 +214,10 @@ class TripleSet:
       rel_1to1 = min(sub_per_obj, obj_per_sum)
       return rel_1to1
    
-   def write_masked(self, outpath, replace_non_alpha_numeric = True):
-      f = None
-      if self.encod == None: f = open(outpath, "w")
-      else: f = open(outpath, "w", encoding=self.encod)
-
-
+   def write_as_problog(self, outpath):
+      f = open(outpath, "w")
       for triple in self.triples:
-         sub = triple.index.id2to[triple.sub]
-         rel = triple.index.id2to[triple.rel]
-         obj = triple.index.id2to[triple.obj]
-         if replace_non_alpha_numeric:
-            sub = re.sub('[^0-9a-zA-Z\-\_]+', '*', sub)
-            rel = re.sub('[^0-9a-zA-Z\-\_]+', '*', rel)
-            obj = re.sub('[^0-9a-zA-Z\-\_]+', '*', obj)
-         else:
-            sub = sub.replace(',','~')
-            rel = rel.replace(',','~')
-            obj = obj.replace(',','~')
-
-            sub = sub.replace("(", "[")
-            sub = sub.replace(")", "]")
-            obj = obj.replace("(", "[")
-            obj = obj.replace(")", "]")
-
-         ts = "e" + sub + "\tr" + rel + "\te" + obj
-         f.write(ts + "\n")
+         f.write(triple.as_problog_fact() + "\n")
       f.close()
 
    def to_list(self):
